@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardware Monitor - POO Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Garantindo que o estilo de alerta exista para o teste */
+        .alerta-critico {
+            background-color: #ff4d4d !important;
+            color: white !important;
+            border: 2px solid red;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>System Hardware Engine</h1>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <article class="card" id="cpu-card">
+                <h2>Uso de CPU</h2>
+                <div class="value" id="cpu-val">--%</div>
+            </article>
+
+            <article class="card" id="ram-card">
+                <h2>Memória RAM</h2>
+                <div class="value" id="ram-val">-- GB</div>
+            </article>
+
+            <article class="card" id="temp-card">
+                <h2>Temperatura</h2>
+                <div class="value" id="temp-val">--°C</div>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; Monitor de hardware :)</p>
+    </footer>
+
+    <script>
+        
+        class ComponenteMonitor {
+            constructor(idCard) {
+                this.cardElemento = document.getElementById(idCard);
+            }
+        }
+
+       
+        class CardHardware extends ComponenteMonitor {
+            constructor(idCard, idValor) {
+                super(idCard);
+                this.valorTexto = document.getElementById(idValor);
+            }
+
+            
+            atualizarInterface(valor, tipo) {
+                this.valorTexto.innerText = valor;
+                
+                const num = parseFloat(valor);
+                let alerta = false;
+
+                if (tipo === 'cpu' && num > 90) alerta = true;
+                if (tipo === 'temp' && num > 75) alerta = true;
+                if (tipo === 'ram' && num > 14) alerta = true;
+
+                if (alerta) {
+                    this.cardElemento.classList.add('alerta-critico');
+                } else {
+                    this.cardElemento.classList.remove('alerta-critico');
+                }
+            }
+        }
+
+        
+        const monitorCPU = new CardHardware('cpu-card', 'cpu-val');
+        const monitorRAM = new CardHardware('ram-card', 'ram-val');
+        const monitorTemp = new CardHardware('temp-card', 'temp-val');
+
+        
+        async function updateStatus() {
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) throw new Error('Erro na requisição');
+                const data = await response.json();
+
+                
+                monitorCPU.atualizarInterface(data.cpuUsage, 'cpu');
+                monitorRAM.atualizarInterface(data.ramUsageGB, 'ram');
+                monitorTemp.atualizarInterface(data.cpuTemperature, 'temp');
+
+                console.log("Monitoramento atualizado via POO");
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+            }
+        }
+
+        
+        setInterval(updateStatus, 2000);
+        updateStatus();
+    </script>
+</body>
+</html>
